@@ -1,3 +1,4 @@
+import uuid
 from dotenv import dotenv_values
 from minio import Minio
 from minio.error import S3Error
@@ -10,6 +11,11 @@ client = Minio(
     secret_key=config["MINIO_SECRET_KEY"],
     secure=False,
 )
+
+"""
+Uploads a file to the MinIO server.
+param str input_file: The path of the image to upload.
+"""
 
 
 def upload_file(input_file):
@@ -24,7 +30,8 @@ def upload_file(input_file):
         print(f'Bucket {config["MINIO_BUCKET_NAME"]} already exists')
 
     try:
-        output_file = f"results/{input_file}"
+        output_file = str(uuid.uuid1()) + ".jpeg"
+        print(output_file)
         putted = client.fput_object(
             config["MINIO_BUCKET_NAME"], output_file, input_file,
         )
@@ -36,7 +43,13 @@ def upload_file(input_file):
         f"Successfully uploaded {input_file} as {output_file} to {config['MINIO_BUCKET_NAME']}."
     )
 
-    return putted
+    response = {
+        "input_file": input_file,
+        "output_file": output_file,
+        "bucket": config["MINIO_BUCKET_NAME"],
+    }
+
+    return response
 
 
 if __name__ == "__main__":
