@@ -22,6 +22,7 @@ CORS(app)
 
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
 
+
 def allowed_file(filename):
     return (
         "." in filename
@@ -40,37 +41,25 @@ def predict():
         if "file" not in request.files:
             return jsonify({"Error": "No files was sent, try againg"})
 
-    uploaded_files = request.files.getlist("file")
-    results = []
-    for file in uploaded_files:
-        filename = secure_filename(file.filename)
-        allowed = allowed_file(filename)
+        uploaded_files = request.files.getlist("file")
+        results = []
+        for file in uploaded_files:
+            filename = secure_filename(file.filename)
+            allowed = allowed_file(filename)
 
-        if not allowed:
-            return jsonify({"Error": "File type not allowed"})
+            if not allowed:
+                return jsonify({"Error": "File type not allowed"})
 
-        image_bytes = file.read()
-        image_result = get_prediction(image_bytes)
-        image_result_path = f"results-{filename}"
-        image_result.save(image_result_path)
-        uploaded = upload_file(image_result_path)
-        print(uploaded)
-        # new_image_bytes = io.BytesIO(image_result.tobytes()).getvalue()
-        # new_image_b64 = b64encode(new_image_bytes).decode("utf-8")
-        # uploaded = upload_file(image_result)
-        # print(type(uploaded))
+            image_bytes = file.read()
+            image_result = get_prediction(image_bytes)
+            image_result_path = f"tmp-{filename}"
+            image_result.save(image_result_path)
+            uploaded = upload_file(image_result_path)
+            os.remove(image_result_path)
+            results.append(uploaded)
 
-        response = {
-            "input_file": filename,
-            "detected_image": "hej",
-        }
-        results.append(response)
-
-    # return send_file()
-    # print(results)
-    # return {"messages": "hej"}
-    # return send_file()
-    return results
+        return results
+    return jsonify({"Error": "Method not allowed"})
 
 
 # @app.route("/<path:filename>")
