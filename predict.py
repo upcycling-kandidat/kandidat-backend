@@ -14,7 +14,7 @@ from google.cloud import vision
 
 log = logging.getLogger("app.sub")
 # Load the model globally to increase performance
-model_path = "./best.pt"
+model_path = "./component.pt"
 model = YOLO(model_path)
 vision_client = vision.ImageAnnotatorClient()
 
