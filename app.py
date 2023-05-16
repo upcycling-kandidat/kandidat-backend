@@ -1,20 +1,48 @@
 from base64 import b64encode
+from utils import remove_background
 import io
 import os
 from PIL import Image
 from flask import (
     Flask,
-    Response,
-    abort,
     jsonify,
     request,
-    send_file,
-    send_from_directory,
 )
-from flask_cors import CORS
-from predict import get_prediction
 from werkzeug.utils import secure_filename
+from flask_cors import CORS
+from predict import (
+    get_defects,
+    get_materials,
+    get_dimensions,
+    get_colors
+)
 from storage import upload_file
+from logging.config import dictConfig
+
+dictConfig({
+    'version': 1,
+    'formatters': {
+        'default': {
+            'format': '[%(asctime)s] %(levelname)s in %(module)s: %(message)s',
+        }
+    },
+    'handlers': {
+        'wsgi': {
+            'class': 'logging.StreamHandler',
+            'stream': 'ext://flask.logging.wsgi_errors_stream',
+            'formatter': 'default'
+        },
+        'file': {
+            'class': 'logging.FileHandler',
+            'filename': 'app.log',
+            'formatter': 'default'
+        }
+    },
+    'root': {
+        'level': 'ERROR',
+        'handlers': ['file']
+    }
+})
 
 
 app = Flask(__name__)
@@ -28,11 +56,6 @@ def allowed_file(filename):
         "." in filename
         and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
     )
-
-
-@app.route("/")
-def index():
-    return "Hello World"
 
 
 @app.route("/predict", methods=["POST"])
@@ -51,33 +74,25 @@ def predict():
                 return jsonify({"Error": "File type not allowed"})
 
             image_bytes = file.read()
-            image_result = get_prediction(image_bytes)
-            image_result_path = f"tmp-{filename}"
-            image_result.save(image_result_path)
-            uploaded = upload_file(image_result_path)
-            os.remove(image_result_path)
-            results.append(uploaded)
+            defects = get_defects(image_bytes, filename)
+            material = get_materials(image_bytes)
+            dimensions = get_dimensions(image_bytes, filename)
+            transparent = remove_background(image_bytes, filename)
+            colors = get_colors(image_bytes)
+
+            app.logger.debug(f"defects: {defects}")
+            app.logger.debug(f"materials: {material}")
+            app.logger.debug(f"Dimensions: {dimensions}")
+
+            response = {
+                "defects": defects,
+                "materials": material,
+                "dimensions": dimensions,
+                "transparent": transparent,
+                "colors": colors,
+            }
+
+            results.append(response)
 
         return results
     return jsonify({"Error": "Method not allowed"})
-
-
-# @app.route("/<path:filename>")
-# def image(filename):
-#     try:
-#         width = int(request.args["width"])
-#         height = int(request.args["height"])
-#     except (KeyError, ValueError):
-#         return send_from_directory("static", filename)
-
-#     try:
-#         im = Image.open(filename)
-#         im.thumbnail((width, height), Image.ANTIALIAS)
-#         bytes_io = io.BytesIO()
-#         im.save(bytes_io, format="JPEG")
-#         return Response(bytes_io.getvalue(), mimetype="image/jpeg")
-
-#     except IOError:
-#         abort(404)
-
-#     return send_from_directory("static", filename)
