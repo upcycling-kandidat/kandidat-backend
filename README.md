@@ -33,6 +33,11 @@ Run the following command to start the MinIO object storage container
 ```bash	
 docker compose up -d
 ```
+## Run the development server
+```bash
+flask run --debug
+```
+The debug flask flag will reload the server when changes are made to the code.
 
 ## The code 
 When accessing environment variables alway use `python-dotenv` package. This will make sure that the environment variables are loaded from the `.env` file. Make sure to follow [Create a .env file](#create-a-.env-file) before running the code.
@@ -63,4 +68,4 @@ def test():
 ```
 
 ## Tech stack
-The project uses `Flask` as the web framework to serve the REST API and `MinIO` as the object storage. The project is written in `Python 3.8.5`.
+The project uses `Flask` as the web framework to serve the REST API and `MinIO` as the object storage. The project is written in `Python 3.8.16`.
