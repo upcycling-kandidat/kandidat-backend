@@ -11,10 +11,11 @@ from flask import (
 from werkzeug.utils import secure_filename
 from flask_cors import CORS
 from predict import (
-    get_defects,
+    get_components,
     get_materials,
     get_dimensions,
-    get_colors
+    get_colors,
+    get_defects
 )
 from storage import upload_file
 from logging.config import dictConfig
@@ -58,8 +59,123 @@ def allowed_file(filename):
     )
 
 
-@app.route("/predict", methods=["POST"])
-def predict():
+@app.route("/", methods=["GET"])
+def index():
+    return "upcycling-kandidat"
+
+@app.route("/components", methods=["POST"])
+def components():
+    if request.method == "POST":
+        if "file" not in request.files:
+            return jsonify({"Error": "No files was sent, try againg"})
+
+        uploaded_files = request.files.getlist("file")
+        results = []
+        for file in uploaded_files:
+            filename = secure_filename(file.filename)
+            allowed = allowed_file(filename)
+
+            if not allowed:
+                return jsonify({"Error": "File type not allowed"})
+
+            image_bytes = file.read()
+            defects = get_components(image_bytes, filename)
+            results.append(defects)
+
+        return results
+    return jsonify({"Error": "Method not allowed"})
+
+
+@app.route("/materials", methods=["POST"])
+def materials():
+    if request.method == "POST":
+        if "file" not in request.files:
+            return jsonify({"Error": "No files was sent, try againg"})
+
+        uploaded_files = request.files.getlist("file")
+        results = []
+        for file in uploaded_files:
+            filename = secure_filename(file.filename)
+            allowed = allowed_file(filename)
+
+            if not allowed:
+                return jsonify({"Error": "File type not allowed"})
+
+            image_bytes = file.read()
+            material = get_materials(image_bytes)
+            results.append(material)
+
+        return results
+    return jsonify({"Error": "Method not allowed"})
+
+@app.route("/dimensions", methods=["POST"])
+def dimensions():
+    if request.method == "POST":
+        if "file" not in request.files:
+            return jsonify({"Error": "No files was sent, try againg"})
+
+        uploaded_files = request.files.getlist("file")
+        results = []
+        for file in uploaded_files:
+            filename = secure_filename(file.filename)
+            allowed = allowed_file(filename)
+
+            if not allowed:
+                return jsonify({"Error": "File type not allowed"})
+
+            image_bytes = file.read()
+            dimensions = get_dimensions(image_bytes, filename)
+            results.append(dimensions)
+
+        return results
+    return jsonify({"Error": "Method not allowed"})
+
+@app.route("/transparent", methods=["POST"])
+def transparent():
+    if request.method == "POST":
+        if "file" not in request.files:
+            return jsonify({"Error": "No files was sent, try againg"})
+
+        uploaded_files = request.files.getlist("file")
+        results = []
+        for file in uploaded_files:
+            filename = secure_filename(file.filename)
+            allowed = allowed_file(filename)
+
+            if not allowed:
+                return jsonify({"Error": "File type not allowed"})
+
+            image_bytes = file.read()
+            transparent = remove_background(image_bytes, filename)
+            results.append(transparent)
+
+        return results
+    return jsonify({"Error": "Method not allowed"})
+
+@app.route("/colors", methods=["POST"])
+def colors():
+    if request.method == "POST":
+        if "file" not in request.files:
+            return jsonify({"Error": "No files was sent, try againg"})
+
+        uploaded_files = request.files.getlist("file")
+        results = []
+        for file in uploaded_files:
+            filename = secure_filename(file.filename)
+            allowed = allowed_file(filename)
+
+            if not allowed:
+                return jsonify({"Error": "File type not allowed"})
+
+            image_bytes = file.read()
+            colors = get_colors(image_bytes)
+            results.append(colors)
+
+        return results
+    return jsonify({"Error": "Method not allowed"})
+
+@app.route("/defects", methods=["POST"])
+def defects():
     if request.method == "POST":
         if "file" not in request.files:
             return jsonify({"Error": "No files was sent, try againg"})
@@ -75,24 +191,7 @@ def predict():
 
             image_bytes = file.read()
             defects = get_defects(image_bytes, filename)
-            material = get_materials(image_bytes)
-            dimensions = get_dimensions(image_bytes, filename)
-            transparent = remove_background(image_bytes, filename)
-            colors = get_colors(image_bytes)
-
-            app.logger.debug(f"defects: {defects}")
-            app.logger.debug(f"materials: {material}")
-            app.logger.debug(f"Dimensions: {dimensions}")
-
-            response = {
-                "defects": defects,
-                "materials": material,
-                "dimensions": dimensions,
-                "transparent": transparent,
-                "colors": colors,
-            }
-
-            results.append(response)
+            results.append(defects)
 
         return results
     return jsonify({"Error": "Method not allowed"})
