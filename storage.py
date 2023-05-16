@@ -23,10 +23,11 @@ param str input_file: The path of the image to upload.
 """
 
 
-def temp_file(filename, input_file: Image, file_ext=".jpeg"):
+def temp_file(filename: str, input_file: Image, file_ext=".jpeg"):
     new_filename = filename.rsplit(".", 1)[0] + file_ext
-    input_file.save(new_filename)
-    return new_filename
+    image_path = f"static/{new_filename}"
+    input_file.save(image_path)
+    return f"static/{new_filename}"
 
 
 def upload_file(input_file: str, file_ext=".jpeg"):

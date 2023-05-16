@@ -11,12 +11,16 @@ import numpy as np
 import cv2
 from storage import temp_file, upload_file
 from google.cloud import vision
+from roboflow import Roboflow
+from dotenv import dotenv_values
 
+config = dotenv_values(".env")
 log = logging.getLogger("app.sub")
 # Load the model globally to increase performance
 model_path = "./component.pt"
 model = YOLO(model_path)
 vision_client = vision.ImageAnnotatorClient()
+rf = Roboflow(api_key=config["ROBOFLOW_API_KEY"])
 
 
 
@@ -30,16 +34,15 @@ def transform_image(image_bytes):
     return im2arr
 
 
-def get_defects(image_bytes, filename):
+def get_components(image_bytes, filename):
     image_array = transform_image(image_bytes)
     results = model(image_array, stream=False, conf=0.4)
     res_plotted = results[0].plot()
     image = Image.fromarray(res_plotted)
-    new_filename = temp_file(filename, image)
-    uploaded_filepath = upload_file(new_filename)
-    os.remove(new_filename)
+    new_filename = temp_file(f"components-{filename}", image)
+    # uploaded_filepath = upload_file(new_filename)
 
-    return uploaded_filepath
+    return new_filename
 
 
 def get_materials(image_bytes):
@@ -112,12 +115,13 @@ def get_dimensions(image_bytes, filename):
         cv2.cvtColor(image_array, cv2.COLOR_BGR2RGB)
     )
     # image_result.save("res.png")
-    image_path = temp_file(filename, image_result)
-    uploaded = upload_file(image_path)
+    image_path = temp_file(f"dimensions-{filename}", image_result)
+    # uploaded = upload_file(image_path)
     response = {
         "predicted_height": predicted_height,
         "predicted_width": predicted_width,
-        **uploaded
+        # "image_path": image_path
+        # **uploaded
     }
     os.remove(image_path)
     return response
@@ -138,13 +142,23 @@ def get_colors(image_bytes):
         hex_color = matplot_colors.to_hex([dec_red, dec_green, dec_blue])
         hex_colors.append(hex_color)
 
-    print(colors)
     return hex_colors
 
+def get_defects(image_bytes, filename):
+    project = rf.workspace().project("chair-scratches")
+    model = project.version(1).model
+    # np_image = transform_image(image_bytes)
 
+    # infer on a local image
+    # print(model.predict(np_image, confidence=30, overlap=30).json())
+    im = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+    im_array = np.array(im)
+    new_filename = temp_file(f"defects-{filename}", im)
 
+    # visualize your prediction
+    model.predict(new_filename, confidence=40, overlap=30).save(f"static/defects-{filename}.jpg")
 
-
+    return f"static/defects-{filename}.jpg"
 
 if __name__ == "__main__":
     data = open("./test.png", "rb")
