@@ -12,8 +12,8 @@ def remove_background(image_bytes, filename):
     input = Image.open(io.BytesIO(image_bytes))
     output = remove(input)
 
-    temp_path = temp_file(filename, output, file_ext=".png")
+    temp_path = temp_file(f"trans-{filename}", output, file_ext=".png")
 
-    uploaded = upload_file(temp_path, file_ext=".png")
+    # uploaded = upload_file(temp_path, file_ext=".png")
 
-    return uploaded
+    return temp_path
