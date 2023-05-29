@@ -1,0 +1,52 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: kandidat-backend
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Yaman
+    family-names: Adamnor
+  - given-names: Alma
+    family-names: Ekberg
+  - given-names: David
+    family-names: Sundström
+repository-code: 'https://github.com/upcycling-kandidat/kandidat-backend'
+repository: 'https://github.com/upcycling-kandidat/kandidat-ui'
+abstract: >-
+  This paper explores potential methods for automating the
+  upcycling process of furniture. We
+
+  propose a combination of image analyses in a furniture
+  sorting process and the development
+
+  of a web application for designers. By using computer
+  vision and machine learning, this
+
+  iterative design research demonstrates the feasibility of
+  automating the sorting process by
+
+  integrating visual detection of characteristics and
+  defects. We present a framework for detecting
+
+  characteristics such as the type of component, what color,
+  which dimensions, and what material.
+
+  Additionally, the process of detecting defects such as
+  scratches, chips, and visible screws is
+
+  presented. Furthermore, based on interviews and workshops,
+  a user-friendly web application is
+
+  presented with the purpose of bridging the gap between
+  designers and discarded furniture.
+keywords:
+  - Machine Learning
+  - Upcycling
+  - AI
+  - Object Detection
+  - Computer Vision
+license: MIT
